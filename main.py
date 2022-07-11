@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from random import randint
+from fastapi import Body, FastAPI
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -31,10 +32,11 @@ def get_tasks():
 
 @app.post("/tasks/create")
 def create_task(task: Task):
+
     temp = task.dict()
-    temp["id"] = range(5)
+    temp["id"] = randint(0, 1000000)
     my_tasks.append(temp)
-    return {"task": task}
+    return {"task": my_tasks}
 
 
 @app.get("/tasks/{task_id}")
@@ -44,6 +46,6 @@ async def read_task(task_id: int):
             return {"task_id": i}
 
 
-@app.patch("tasks")
+@app.patch("/tasks")
 def update_task(task: Task):
     return {"message": "done"}
