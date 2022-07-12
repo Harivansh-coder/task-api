@@ -1,5 +1,5 @@
 from random import randint
-from fastapi import Body, FastAPI
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -17,6 +17,11 @@ class Task(BaseModel):
     completed: bool = False
 
 
+class ResponseMess(BaseModel):
+    code: int
+    message: str
+
+
 my_tasks = []
 
 
@@ -30,9 +35,8 @@ def get_tasks():
     return{"tasks": my_tasks, "count": len(my_tasks)}
 
 
-@app.post("/tasks/create")
+@app.post("/tasks/create", status_code=status.HTTP_201_CREATED)
 def create_task(task: Task):
-
     temp = task.dict()
     temp["id"] = randint(0, 1000000)
     my_tasks.append(temp)
@@ -45,7 +49,15 @@ async def read_task(task_id: int):
         if task_id == i["id"]:
             return {"task_id": i}
 
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"task with id {task_id} not found")
+
 
 @app.patch("/tasks")
 def update_task(task: Task):
     return {"message": "done"}
+
+
+@app.delete("/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def deleteTask():
+    pass
