@@ -2,24 +2,9 @@ from random import randint
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 
+from app.models.task import Task
+
 app = FastAPI()
-
-
-class User(BaseModel):
-    name: str
-    email: str
-    password: str
-
-
-class Task(BaseModel):
-    title: str
-    description: str
-    completed: bool = False
-
-
-class ResponseMess(BaseModel):
-    code: int
-    message: str
 
 
 my_tasks = []
