@@ -34,20 +34,22 @@ def get_tasks():
 
 @app.post("/tasks/create", status_code=status.HTTP_201_CREATED)
 def create_task(task: Task):
-    temp = task.dict()
-    temp["id"] = randint(0, 1000000)
-    my_tasks.append(temp)
-    return {"task": my_tasks}
+    cursor.execute("""INSERT INTO tasks (title, description) VALUES (%s, %s) RETURNING *""",
+                   (task.title, task.description))
+    new_task = cursor.fetchone()
+    con.commit()
+    return {"task": new_task}
 
 
 @app.get("/tasks/{task_id}")
-async def read_task(task_id: int):
-    for i in my_tasks:
-        if task_id == i["id"]:
-            return {"task_id": i}
+def read_task(task_id: int):
+    cursor.execute("""SELECT * FROM tasks WHERE id = %s """, (str(task_id)))
+    task = cursor.fetchone()
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"task with id {task_id} not found")
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"task with id {task_id} not found")
+    return {"task_id": task}
 
 
 @app.patch("/tasks")
