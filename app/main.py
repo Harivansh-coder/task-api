@@ -1,13 +1,23 @@
 from random import randint
 from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel
-
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from app.models.task import Task
 
 app = FastAPI()
 
 
 my_tasks = []
+
+try:
+    con = psycopg2.connect(host='localhost', database='task-api-db',
+                           user='postgres', password='1234', cursor_factory=RealDictCursor)
+
+    cursor = con.cursor()
+    print("connection successful")
+
+except Exception as error:
+    print(error)
 
 
 @app.get("/")
@@ -17,7 +27,9 @@ def root():
 
 @app.get("/tasks")
 def get_tasks():
-    return{"tasks": my_tasks, "count": len(my_tasks)}
+    cursor.execute("""SELECT * FROM tasks""")
+    tasks = cursor.fetchall()
+    return{"tasks": tasks, "count": len(tasks)}
 
 
 @app.post("/tasks/create", status_code=status.HTTP_201_CREATED)
