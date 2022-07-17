@@ -43,7 +43,8 @@ def create_task(task: Task):
 
 @app.get("/tasks/{task_id}")
 def read_task(task_id: int):
-    cursor.execute("""SELECT * FROM tasks WHERE id = %s """, (str(task_id)))
+    cursor.execute("""SELECT * FROM tasks WHERE id = %s """,
+                   (str(task_id)))  # not working on double digit ids
     task = cursor.fetchone()
     if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
