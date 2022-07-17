@@ -4,14 +4,13 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from app.models.task import Task
 from .database import models
-from .database.connection import engine
+from .database.connection import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI()
 
-my_tasks = []
 
 try:
     con = psycopg2.connect(host='localhost', database='task-api-db',
