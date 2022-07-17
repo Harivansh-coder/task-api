@@ -1,10 +1,10 @@
 from fastapi import FastAPI, HTTPException, status, Response, Depends
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from app.models.task import Task
+from app.schemas.task import Task
+from app.schemas.response import TaskResponse
 from .database import models
 from sqlalchemy.orm import Session
 from .database.connection import engine, get_db
+from typing import List
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -12,39 +12,28 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-try:
-    con = psycopg2.connect(host='localhost', database='task-api-db',
-                           user='postgres', password='1234', cursor_factory=RealDictCursor)
-
-    cursor = con.cursor()
-    print("connection successful")
-
-except Exception as error:
-    print(error)
-
-
 @app.get("/")
 def root():
     return {"message": "Welcome to To-Do API, you can find the docs at /docs :)"}
 
 
-@app.get("/tasks")
+@app.get("/tasks",  response_model=List[TaskResponse])
 def get_tasks(db: Session = Depends(get_db)):
     tasks = db.query(models.Task).all()
-    return{"tasks": tasks, "count": len(tasks)}
+    return tasks
 
 
-@app.post("/tasks/create", status_code=status.HTTP_201_CREATED)
+@app.post("/tasks/create", status_code=status.HTTP_201_CREATED, response_model=TaskResponse)
 def create_task(task: Task, db: Session = Depends(get_db)):
     new_task = models.Task(**task.dict())
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
 
-    return {"task": new_task}
+    return new_task
 
 
-@app.get("/tasks/{task_id}")
+@app.get("/tasks/{task_id}",  response_model=TaskResponse)
 def read_task(task_id: int, db: Session = Depends(get_db)):
     task = db.query(models.Task).filter(models.Task.id == task_id).first()
 
@@ -52,10 +41,10 @@ def read_task(task_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"task with id {task_id} not found")
 
-    return {"task_id": task}
+    return task
 
 
-@app.put("/tasks/{id}")
+@app.put("/tasks/{id}", response_model=TaskResponse)
 def update_task(id: int, task: Task,  db: Session = Depends(get_db)):
 
     update_query = db.query(models.Task).filter(models.Task.id == id)
@@ -67,7 +56,7 @@ def update_task(id: int, task: Task,  db: Session = Depends(get_db)):
     # if task do exits
     update_query.update(task.dict(), synchronize_session=False)
     db.commit()
-    return {"data": update_query.first()}
+    return update_query.first()
 
 
 @app.delete("/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT)
