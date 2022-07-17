@@ -1,5 +1,5 @@
 from random import randint
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Response
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from app.models.task import Task
@@ -44,7 +44,7 @@ def create_task(task: Task):
 @app.get("/tasks/{task_id}")
 def read_task(task_id: int):
     cursor.execute("""SELECT * FROM tasks WHERE id = %s """,
-                   (str(task_id)))  # not working on double digit ids
+                   (str(task_id),))  # not working on double digit ids
     task = cursor.fetchone()
     if not task:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -53,11 +53,27 @@ def read_task(task_id: int):
     return {"task_id": task}
 
 
-@app.patch("/tasks")
-def update_task(task: Task):
-    return {"message": "done"}
+@app.put("/tasks/{id}")
+def update_task(id: int, task: Task):
+    cursor.execute("""UPDATE tasks SET title = %s, description = %s, completed = %s WHERE id = %s RETURNING *""",
+                   (task.title, task.description, task.completed, str(id)))  # not working on double digit ids
+    updated_task = cursor.fetchone()
+    con.commit()
+    if not update_task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"task with id {id} not found")
+
+    return {"data": updated_task}
 
 
 @app.delete("/tasks/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def deleteTask():
-    pass
+def deleteTask(id: int):
+    cursor.execute("""DELETE FROM tasks WHERE id = %s RETURNING *""",
+                   (str(id),))  # not working on double digit ids
+    deleted_task = cursor.fetchone()
+    con.commit()
+    if not deleted_task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"task with id {id} not found")
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
