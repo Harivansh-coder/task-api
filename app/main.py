@@ -1,11 +1,15 @@
-from random import randint
+from pyexpat import model
 from fastapi import FastAPI, HTTPException, status, Response
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from app.models.task import Task
+from .database import models
+from .database.connection import engine
+
+models.Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI()
-
 
 my_tasks = []
 
