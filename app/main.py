@@ -6,9 +6,8 @@ from .database import models
 from sqlalchemy.orm import Session
 from .database.connection import engine, get_db
 from typing import List
-from passlib.context import CryptContext
+from .utils.hash import password_hash
 
-pwd_context = CryptContext(schemes="bcrypt", deprecated="auto")
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -86,6 +85,8 @@ def get_users(db: Session = Depends(get_db)):
 
 @app.post("/users/create", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
 def create_user(user: User, db: Session = Depends(get_db)):
+
+    user.password = password_hash(user.password)
     new_user = models.User(**user.dict())
     db.add(new_user)
     db.commit()
@@ -105,7 +106,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 
-@app.put("/users/{id}", response_model=UserResponse)
+@app.patch("/users/{id}", response_model=UserResponse)
 def update_user(id: int, user: User,  db: Session = Depends(get_db)):
 
     update_query = db.query(models.User).filter(models.User.id == id)
