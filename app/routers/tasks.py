@@ -7,7 +7,8 @@ from ..database.connection import get_db
 from typing import List
 
 router = APIRouter(
-    prefix="/tasks"
+    prefix="/tasks",
+    tags=["tasks"]
 )
 
 
