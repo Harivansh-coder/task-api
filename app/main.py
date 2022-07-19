@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from .database import models
 from .database.connection import engine
-from .routers import tasks, users, authentication
+from .routers import auth, tasks, users
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -19,4 +19,4 @@ app.include_router(tasks.router)
 # users routes
 app.include_router(users.router)
 # auth routes
-app.include_router(authentication.router)
+app.include_router(auth.router)
