@@ -9,7 +9,8 @@ from ..utils.hash import password_hash
 
 
 router = APIRouter(
-    prefix="/users"
+    prefix="/users",
+    tags=["users"]
 )
 
 
@@ -42,19 +43,19 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     return user
 
 
-@router.patch("/{id}", response_model=UserResponse)
-def update_user(id: int, user: User,  db: Session = Depends(get_db)):
+# @router.patch("/{id}", response_model=UserResponse)
+# def update_user(id: int, user: User,  db: Session = Depends(get_db)):
 
-    update_query = db.query(models.User).filter(models.User.id == id)
+#     update_query = db.query(models.User).filter(models.User.id == id)
 
-    # if user does not exits
-    if not update_query.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"user with id {id} not found")
-    # if user do exits
-    update_query.update(user.dict(), synchronize_session=False)
-    db.commit()
-    return update_query.first()
+#     # if user does not exits
+#     if not update_query.first():
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+#                             detail=f"user with id {id} not found")
+#     # if user do exits
+#     update_query.update(user.dict(), synchronize_session=False)
+#     db.commit()
+#     return update_query.first()
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
