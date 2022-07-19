@@ -1,4 +1,4 @@
-from sqlalchemy import TIMESTAMP, Boolean, Column, Integer, String, text
+from sqlalchemy import TIMESTAMP, Boolean, Column, ForeignKey, Integer, String, text
 from .connection import Base
 
 
@@ -11,6 +11,8 @@ class Task(Base):
     completed = Column(Boolean, server_default='False', nullable=False)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text('now()'))
+    user_id = Column(Integer, ForeignKey(
+        "users.id", ondelete="CASCADE"), nullable=False)
 
 
 class User(Base):
