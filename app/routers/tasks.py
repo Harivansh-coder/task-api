@@ -5,6 +5,7 @@ from ..database import models
 from sqlalchemy.orm import Session
 from ..database.connection import get_db
 from typing import List
+from ..utils.oauth2 import get_current_user
 
 router = APIRouter(
     prefix="/tasks",
@@ -13,13 +14,15 @@ router = APIRouter(
 
 
 @router.get("/",  response_model=List[TaskResponse])
-def get_tasks(db: Session = Depends(get_db)):
+def get_tasks(db: Session = Depends(get_db),  user_id: int = Depends(get_current_user)):
+
     tasks = db.query(models.Task).all()
     return tasks
 
 
 @router.post("/create", status_code=status.HTTP_201_CREATED, response_model=TaskResponse)
-def create_task(task: Task, db: Session = Depends(get_db)):
+def create_task(task: Task, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
+
     new_task = models.Task(**task.dict())
     db.add(new_task)
     db.commit()
@@ -29,7 +32,7 @@ def create_task(task: Task, db: Session = Depends(get_db)):
 
 
 @router.get("/{task_id}",  response_model=TaskResponse)
-def read_task(task_id: int, db: Session = Depends(get_db)):
+def read_task(task_id: int, db: Session = Depends(get_db),  user_id: int = Depends(get_current_user)):
     task = db.query(models.Task).filter(models.Task.id == task_id).first()
 
     if not task:
@@ -40,7 +43,7 @@ def read_task(task_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{id}", response_model=TaskResponse)
-def update_task(id: int, task: Task,  db: Session = Depends(get_db)):
+def update_task(id: int, task: Task,  db: Session = Depends(get_db),  user_id: int = Depends(get_current_user)):
 
     update_query = db.query(models.Task).filter(models.Task.id == id)
 
@@ -55,7 +58,7 @@ def update_task(id: int, task: Task,  db: Session = Depends(get_db)):
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def deleteTask(id: int,  db: Session = Depends(get_db)):
+def deleteTask(id: int,  db: Session = Depends(get_db),  user_id: int = Depends(get_current_user)):
 
     deleted_task = db.query(models.Task).filter(models.Task.id == id)
     if not deleted_task.first():
