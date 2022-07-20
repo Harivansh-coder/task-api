@@ -10,9 +10,11 @@ from ..config import env_settings
 
 oauth2_schema = OAuth2PasswordBearer(tokenUrl='login')
 
+
 SECRET_KEY = env_settings.secret_key
 ALGORITHM = env_settings.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = env_settings.token_expiry
+
 
 
 def create_access_token(data: dict):
