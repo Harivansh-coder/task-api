@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from .database import models
 from .database.connection import engine
-from .routers import auth, tasks, users
+from .routers import auth, tasks, users, admin
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -34,3 +34,5 @@ app.include_router(tasks.router)
 app.include_router(users.router)
 # auth routes
 app.include_router(auth.router)
+# admin routes
+app.include_router(admin.router)
