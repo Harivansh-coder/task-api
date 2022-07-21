@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status, Response, Depends, APIRouter
 from app.schemas.response import UserResponse
 from app.schemas.user import User
+from app.utils.oauth2 import get_current_user
 from ..database import models
 from sqlalchemy.orm import Session
 from ..database.connection import get_db
@@ -15,7 +16,13 @@ router = APIRouter(
 
 
 @router.get("/",  response_model=List[UserResponse])
-def get_users(db: Session = Depends(get_db)):
+def get_users(db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    admin_user = db.query(models.AdminUser).filter(
+        models.AdminUser.id == current_user.id).first()
+    if not admin_user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Not authorised to perform requested action")
+
     users = db.query(models.User).all()
     return users
 
@@ -38,7 +45,13 @@ def create_user(user: User, db: Session = Depends(get_db)):
 
 
 @router.get("/{user_id}",  response_model=UserResponse)
-def read_user(user_id: int, db: Session = Depends(get_db)):
+def read_user(user_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+    admin_user = db.query(models.AdminUser).filter(
+        models.AdminUser.id == current_user.id).first()
+    if not admin_user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Not authorised to perform requested action")
+
     user = db.query(models.User).filter(models.User.id == user_id).first()
 
     if not user:
@@ -64,7 +77,13 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def deleteUser(id: int,  db: Session = Depends(get_db)):
+def deleteUser(id: int,  db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+
+    admin_user = db.query(models.AdminUser).filter(
+        models.AdminUser.id == current_user.id).first()
+    if not admin_user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Not authorised to perform requested action")
 
     deleted_user = db.query(models.User).filter(models.User.id == id)
     if not deleted_user.first():

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, constr
 
 # model for response
 
@@ -11,7 +11,7 @@ class UserOut(BaseModel):
 
 
 class User(UserOut):
-    password: str
+    password: constr(min_length=8)
 
 # model for login
 
