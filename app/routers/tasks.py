@@ -15,7 +15,6 @@ router = APIRouter(
 
 @router.get("/",  response_model=List[TaskResponse])
 def get_tasks(db: Session = Depends(get_db),  current_user: int = Depends(get_current_user)):
-
     tasks = db.query(models.Task).filter(
         models.Task.user_id == current_user.id).all()
     return tasks

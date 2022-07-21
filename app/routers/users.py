@@ -1,10 +1,10 @@
 from fastapi import HTTPException, status, Response, Depends, APIRouter
 from app.schemas.response import UserResponse
 from app.schemas.user import User
+from app.utils.oauth2 import get_current_user
 from ..database import models
 from sqlalchemy.orm import Session
 from ..database.connection import get_db
-from typing import List
 from ..utils.hash import password_hash
 
 
@@ -14,10 +14,16 @@ router = APIRouter(
 )
 
 
-@router.get("/",  response_model=List[UserResponse])
-def get_users(db: Session = Depends(get_db)):
-    users = db.query(models.User).all()
-    return users
+# @router.get("/",  response_model=List[UserResponse])
+# def get_users(db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+#     admin_user = db.query(models.AdminUser).filter(
+#         models.AdminUser.id == current_user.id).first()
+#     if not admin_user:
+#         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+#                             detail="Not authorised to perform requested action")
+
+#     users = db.query(models.User).all()
+#     return users
 
 
 @router.post("/create", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
@@ -38,12 +44,18 @@ def create_user(user: User, db: Session = Depends(get_db)):
 
 
 @router.get("/{user_id}",  response_model=UserResponse)
-def read_user(user_id: int, db: Session = Depends(get_db)):
+def read_user(user_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+
     user = db.query(models.User).filter(models.User.id == user_id).first()
+    print(user)
 
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"user with id {user_id} not found")
+
+    if user.id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Not authorised to perform requested action")
 
     return user
 
@@ -64,13 +76,18 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def deleteUser(id: int,  db: Session = Depends(get_db)):
+def deleteUser(id: int,  db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
 
-    deleted_user = db.query(models.User).filter(models.User.id == id)
-    if not deleted_user.first():
+    delete_user = db.query(models.User).filter(models.User.id == id)
+    if not delete_user.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"user with id {id} not found")
-    deleted_user.delete(synchronize_session=False)
+
+    if delete_user.first().id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Not authorised to perform requested action")
+
+    delete_user.delete(synchronize_session=False)
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
