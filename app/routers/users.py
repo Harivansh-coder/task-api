@@ -43,21 +43,21 @@ def create_user(user: User, db: Session = Depends(get_db)):
     return new_user
 
 
-@router.get("/{user_id}",  response_model=UserResponse)
-def read_user(user_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+# @router.get("/{user_id}",  response_model=UserResponse)
+# def read_user(user_id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
 
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    print(user)
+#     user = db.query(models.User).filter(models.User.id == user_id).first()
+#     print(user)
 
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"user with id {user_id} not found")
+#     if not user:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+#                             detail=f"user with id {user_id} not found")
 
-    if user.id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="Not authorised to perform requested action")
+#     if user.id != current_user.id:
+#         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+#                             detail="Not authorised to perform requested action")
 
-    return user
+#     return user
 
 
 # @router.patch("/{id}", response_model=UserResponse)
@@ -75,19 +75,19 @@ def read_user(user_id: int, db: Session = Depends(get_db), current_user: int = D
 #     return update_query.first()
 
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def deleteUser(id: int,  db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+# @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
+# def deleteUser(id: int,  db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
 
-    delete_user = db.query(models.User).filter(models.User.id == id)
-    if not delete_user.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"user with id {id} not found")
+#     delete_user = db.query(models.User).filter(models.User.id == id)
+#     if not delete_user.first():
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+#                             detail=f"user with id {id} not found")
 
-    if delete_user.first().id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
-                            detail="Not authorised to perform requested action")
+#     if delete_user.first().id != current_user.id:
+#         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+#                             detail="Not authorised to perform requested action")
 
-    delete_user.delete(synchronize_session=False)
-    db.commit()
+#     delete_user.delete(synchronize_session=False)
+#     db.commit()
 
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+#     return Response(status_code=status.HTTP_204_NO_CONTENT)
